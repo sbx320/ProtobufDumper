@@ -18,8 +18,9 @@ namespace ProtobufDumper
 
             string target = args[ 0 ];
             string output = ( ( args.Length > 1 ) ? args[ 1 ] : null );
+            string package = ((args.Length > 2) ? args[2] : null);
 
-            ImageFile imgFile = new ImageFile( target, output );
+            ImageFile imgFile = new ImageFile( target, output, package);
 
             try
             {

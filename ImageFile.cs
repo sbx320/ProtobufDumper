@@ -58,11 +58,12 @@ namespace ProtobufDumper
         private Dictionary<string, EnumDescriptorProto> enumLookup;
         private Dictionary<string, int> enumLookupCount;
         private List<string> deferredEnumTokens;
-
+        private string package;
         private Regex ProtoFileNameRegex;
 
-        public ImageFile(string fileName, string output = null)
+        public ImageFile(string fileName, string output = null, string package = null)
         {
+            this.package = package;
             this.FileName = fileName;
             this.OutputDir = output ?? Path.GetFileNameWithoutExtension(fileName);
             this.ProtoList = new List<string>();
@@ -685,7 +686,8 @@ namespace ProtobufDumper
                 descriptorDeclarationBuilder.Append(" ");
             }
 
-            descriptorDeclarationBuilder.AppendFormat("{0} {1} = {2}{3};", type, field.name, field.number, parameters);
+            
+            descriptorDeclarationBuilder.AppendFormat("{0} {1} = {2}{3};", type.TrimStart('.'), field.name, field.number, parameters);
 
             return descriptorDeclarationBuilder.ToString();
         }
@@ -721,6 +723,8 @@ namespace ProtobufDumper
 
             bool marker = false;
 
+            sb.AppendLine("syntax = \"proto2\";");
+
             foreach (string dependency in set.dependency)
             {
                 sb.AppendLine("import \"" + dependency + "\";");
@@ -736,6 +740,11 @@ namespace ProtobufDumper
             if (!string.IsNullOrEmpty(set.package))
             {
                 sb.AppendLine("package " + set.package + ";");
+                marker = true;
+            }
+            else if (!string.IsNullOrEmpty(package))
+            {
+                sb.AppendLine("package " + package + ";");
                 marker = true;
             }
 
@@ -780,7 +789,7 @@ namespace ProtobufDumper
 
                 foreach (MethodDescriptorProto method in service.method)
                 {
-                    string declaration = "\trpc " + method.name + " (" + method.input_type + ") returns (" + method.output_type + ")";
+                    string declaration = "\trpc " + method.name + " (" + method.input_type.TrimStart('.') + ") returns (" + method.output_type.TrimStart('.') + ")";
 
                     Dictionary<string, string> options = DumpOptions(method.options);
 
